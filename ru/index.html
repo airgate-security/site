@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airgate: шлюз доступа и защита периметра</title>
+<meta name="description" content="Один вход к Kubernetes, базам данных и серверам через вашу систему входа, с полным журналом аудита. Те же ноды фильтруют трафик на L4 и L7. Работает у вас, без телеметрии.">
+<link rel="canonical" href="https://airgate.io/ru/">
+<link rel="alternate" hreflang="en" href="https://airgate.io/">
+<link rel="alternate" hreflang="ru" href="https://airgate.io/ru/">
+<link rel="alternate" hreflang="x-default" href="https://airgate.io/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/golos-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css">
+<meta name="theme-color" content="#f5c400">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Airgate">
+<meta property="og:title" content="Airgate: шлюз доступа и защита периметра">
+<meta property="og:description" content="Один вход к Kubernetes, базам данных и серверам, полный журнал аудита и фильтрация на L4 и L7 в одном продукте. Работает у вас.">
+<meta property="og:url" content="https://airgate.io/ru/">
+<meta property="og:image" content="https://airgate.io/assets/img/og.ru.png">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<a class="skip" href="#main">К содержимому</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/ru/" aria-label="Airgate, главная">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#142235"/><path d="M8 25V9h16v16" fill="none" stroke="#f5c400" stroke-width="3.5" stroke-linejoin="round"/><path d="M13 25v-9h6v9" fill="none" stroke="#f5c400" stroke-width="2.5"/></svg>
+      Airgate
+    </a>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#parts">Три части</a>
+      <a href="#how">Как устроено</a>
+      <a href="#access">Доступ</a>
+      <a href="#perimeter">L4 и L7</a>
+    </nav>
+    <a class="lang" href="/" hreflang="en" lang="en">English</a>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <section class="sign" aria-labelledby="hero-title">
+      <div class="sign-direction">
+        <div>
+          <h1 id="hero-title">Единый вход в вашу инфраструктуру</h1>
+          <p class="lead">Airgate защищает периметр фильтрами L4 и L7 и публикует для инженеров базы, кластеры и серверы с контролем доступа по личности. Три части, каждую можно взять отдельно. Всё работает в вашей сети.</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="mailto:hello@airgate.io?subject=%D0%A0%D0%B0%D0%BD%D0%BD%D0%B8%D0%B9%20%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%20%D0%BA%20Airgate">Запросить ранний доступ</a>
+          <a class="btn btn-plain" href="#how">Как это устроено</a>
+        </div>
+      </div>
+      <figure class="sign-board" aria-label="Пример: одно подключение к базе через Airgate">
+        <p class="board-cmd">ag db connect pg-orders --db-user app</p>
+        <ol class="trace">
+          <li><span class="k">кто</span><span class="v">alice, группа dev, вход через ваш OIDC</span></li>
+          <li><span class="k">политика</span><span class="v"><span class="ok">разрешено</span> правилом dev-read-orders</span></li>
+          <li><span class="k">учётка</span><span class="v">временный пользователь ag_alice_7f3c на эту сессию</span></li>
+          <li><span class="k">маршрут</span><span class="v">нода db-1, исходящий туннель, без входящих портов</span></li>
+          <li><span class="k">аудит</span><span class="v">SELECT id, status FROM orders WHERE id = 42, в цепочке как a91f04e2</span></li>
+        </ol>
+        <figcaption class="board-note">Одно подключение по шагам. Каждый шаг проверяется и попадает в журнал аудита.</figcaption>
+      </figure>
+    </section>
+
+    <section class="section" aria-labelledby="pain-title">
+      <h2 id="pain-title">Доступы и периметр обычно разбросаны по разным системам</h2>
+      <ul class="pains">
+        <li><h3>Доступ</h3><p>VPN, SSH-ключи, общие пароли к базам. У каждой системы свой механизм и свои исключения.</p></li>
+        <li><h3>Аудит</h3><p>Кто и что делал в базе или на хосте, приходится собирать из разных журналов, и проверяющему трудно показать, у кого какие были права.</p></li>
+        <li><h3>Периметр</h3><p>Межсетевой экран, WAF и списки блокировок живут отдельно и ничего не знают друг о друге.</p></li>
+        <li><h3>Увольнения</h3><p>Люди уходят, доступы остаются. Отзыв прав — ручная работа в десятке систем.</p></li>
+      </ul>
+    </section>
+
+    <section class="section" id="parts" aria-labelledby="parts-title">
+      <h2 id="parts-title">Три части, каждая работает сама по себе</h2>
+      <p class="intro">Начните с той, что нужна сейчас, остальные добавите потом. Нода может работать с любой из них отдельно или со всеми тремя сразу.</p>
+      <div class="parts">
+        <div class="part">
+          <div class="part-mark">L4</div>
+          <h3>Фильтр L4 в ядре</h3>
+          <p>Отбрасывает лишние пакеты на XDP раньше, чем их увидят сетевой стек и приложения. Правила allow и deny, лимиты скорости и соединений, защита от флудов.</p>
+          <p class="alone">Отдельно: на Linux-хосте с ядром 5.8 и новее, даже без хаба. Правила можно брать из локального каталога.</p>
+          <a class="more" href="#l4">Подробнее о фильтре L4</a>
+        </div>
+        <div class="part">
+          <div class="part-mark">L7</div>
+          <h3>Веб-фильтр L7</h3>
+          <p>Обратный прокси перед вашими веб-сервисами. Проверяет запросы по OWASP Core Rule Set, снимает отпечатки клиентов и проверяет подозрительных. Решение принимают ваши правила.</p>
+          <p class="alone">Отдельно: перед любым веб-сервисом, тоже без хаба.</p>
+          <a class="more" href="#l7">Подробнее о фильтре L7</a>
+        </div>
+        <div class="part">
+          <div class="part-mark">AC</div>
+          <h3>Контроль доступа и публикация ресурсов</h3>
+          <p>Открывает инженерам базы данных, Kubernetes, SSH и любые TCP-сервисы без входящих портов. Доступ — по личности и политикам, каждый запрос и каждая команда попадают в журнал аудита.</p>
+          <p class="alone">Отдельно: нода рядом с ресурсами и хаб, который подписывает сессии и ведёт аудит. Фильтры не обязательны.</p>
+          <a class="more" href="#access">Подробнее о доступе</a>
+        </div>
+      </div>
+      <p class="parts-note">Под одним хабом части обмениваются сигналами: адрес, пойманный фильтром L7 на одной ноде, можно отбросить на L4 на всех нодах флота.</p>
+    </section>
+
+    <section class="section" id="how" aria-labelledby="how-title">
+      <h2 id="how-title">Хаб принимает решения, ноды стоят рядом с ресурсами</h2>
+      <p class="intro">Инженер работает из командной строки <code>ag</code> или из браузера. Хаб проверяет политики и ведёт журнал аудита. Ноды стоят рядом с кластерами, серверами и базами, а также на периметре.</p>
+      <div class="diagram">
+        <svg class="diagram-wide" viewBox="0 0 1000 380" role="img" aria-labelledby="dw-t">
+          <title id="dw-t">Инженер подключается к хабу. Ноды у кластера Kubernetes, у серверов и баз и на периметре подключаются к хабу исходящими туннелями.</title>
+          <defs>
+            <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="arrow" d="M0 0 10 5 0 10z"/></marker>
+          </defs>
+          <rect class="box" x="10" y="140" width="210" height="100" rx="10"/>
+          <text class="t" x="115" y="182" text-anchor="middle">Инженер</text>
+          <text class="s" x="115" y="206" text-anchor="middle">CLI ag или браузер</text>
+
+          <path class="line" d="M220 190H372" marker-end="url(#aw)"/>
+
+          <rect class="hub" x="380" y="105" width="250" height="170" rx="10"/>
+          <text class="hub-t" x="505" y="160" text-anchor="middle">Хаб</text>
+          <text class="hub-s" x="505" y="186" text-anchor="middle">политики, аудит, веб-консоль</text>
+          <text class="hub-s" x="505" y="208" text-anchor="middle">короткоживущие сертификаты</text>
+          <text class="hub-s" x="505" y="230" text-anchor="middle">реплики на PostgreSQL</text>
+
+          <rect class="box" x="770" y="20" width="220" height="80" rx="10"/>
+          <text class="t" x="880" y="55" text-anchor="middle">Нода</text>
+          <text class="s" x="880" y="78" text-anchor="middle">кластер Kubernetes</text>
+          <rect class="box" x="770" y="150" width="220" height="80" rx="10"/>
+          <text class="t" x="880" y="185" text-anchor="middle">Нода</text>
+          <text class="s" x="880" y="208" text-anchor="middle">серверы и базы</text>
+          <rect class="box" x="770" y="280" width="220" height="80" rx="10"/>
+          <text class="t" x="880" y="315" text-anchor="middle">Нода</text>
+          <text class="s" x="880" y="338" text-anchor="middle">периметр, L4 и L7</text>
+
+          <path class="tunnel" d="M770 60C700 60 690 140 638 160" marker-end="url(#aw)"/>
+          <path class="tunnel" d="M770 190H638" marker-end="url(#aw)"/>
+          <path class="tunnel" d="M770 320C700 320 690 240 638 220" marker-end="url(#aw)"/>
+          <text class="s" x="704" y="180" text-anchor="middle">исходящий</text>
+        </svg>
+        <svg class="diagram-narrow" viewBox="0 0 340 600" role="img" aria-labelledby="dn-t">
+          <title id="dn-t">Инженер подключается к хабу. Ноды подключаются к хабу исходящими туннелями.</title>
+          <defs>
+            <marker id="an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="arrow" d="M0 0 10 5 0 10z"/></marker>
+          </defs>
+          <rect class="box" x="40" y="10" width="260" height="70" rx="10"/>
+          <text class="t" x="170" y="40" text-anchor="middle">Инженер</text>
+          <text class="s" x="170" y="62" text-anchor="middle">CLI ag или браузер</text>
+          <path class="line" d="M170 80V122" marker-end="url(#an)"/>
+          <rect class="hub" x="20" y="130" width="300" height="130" rx="10"/>
+          <text class="hub-t" x="170" y="168" text-anchor="middle">Хаб</text>
+          <text class="hub-s" x="170" y="194" text-anchor="middle">политики, аудит, веб-консоль</text>
+          <text class="hub-s" x="170" y="216" text-anchor="middle">короткоживущие сертификаты</text>
+          <text class="hub-s" x="170" y="238" text-anchor="middle">реплики на PostgreSQL</text>
+          <path class="tunnel" d="M170 310V268" marker-end="url(#an)"/>
+          <text class="s" x="182" y="294">исходящие туннели</text>
+          <rect class="box" x="20" y="320" width="300" height="70" rx="10"/>
+          <text class="t" x="170" y="350" text-anchor="middle">Нода</text>
+          <text class="s" x="170" y="372" text-anchor="middle">кластер Kubernetes</text>
+          <rect class="box" x="20" y="410" width="300" height="70" rx="10"/>
+          <text class="t" x="170" y="440" text-anchor="middle">Нода</text>
+          <text class="s" x="170" y="462" text-anchor="middle">серверы и базы</text>
+          <rect class="box" x="20" y="500" width="300" height="70" rx="10"/>
+          <text class="t" x="170" y="530" text-anchor="middle">Нода</text>
+          <text class="s" x="170" y="552" text-anchor="middle">периметр, L4 и L7</text>
+        </svg>
+      </div>
+      <div class="facts">
+        <div><h3>Ноды подключаются сами</h3><p>Каждая нода открывает к хабу исходящий шифрованный туннель. Ресурсам за ней не нужны входящие порты.</p></div>
+        <div><h3>Решает хаб, исполняет нода</h3><p>Хаб проверяет политику, выпускает короткоживущий сертификат на сессию и пишет аудит. Нода исполняет решение рядом с ресурсом.</p></div>
+        <div><h3>Без единой точки отказа</h3><p>Хаб можно держать в нескольких репликах на PostgreSQL. Если хаб недоступен, ноды продолжают защищать периметр.</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="access" aria-labelledby="access-title">
+      <h2 id="access-title">Доступ по личности и след, который можно проверить</h2>
+      <div class="split">
+        <ul class="features">
+          <li><h3>Ваша система входа</h3><p>Любой OIDC-провайдер: Keycloak, Microsoft Entra ID, Okta. Для простых установок Airgate поставляется с Dex.</p></li>
+          <li><h3>Политики вместо ключей</h3><p>Кому, к чему и когда — одним набором правил на Cedar. По умолчанию доступ закрыт, права выдаются группам, политику можно проверить до применения.</p></li>
+          <li><h3>Без постоянных паролей</h3><p>Вместо общего пароля к базе — временный пользователь на каждую сессию.</p></li>
+          <li><h3>Доступ по запросу</h3><p>Инженер просит доступ, согласующий выдаёт его на ограниченное время, и доступ истекает сам.</p></li>
+          <li><h3>SSH под контролем</h3><p>Сессии записываются. Каждый канал, от оболочки до проброса портов, авторизуется отдельно.</p></li>
+          <li><h3>Журнал, в котором видны правки</h3><p>Записи аудита связаны цепочкой хэшей, поэтому изменение задним числом заметно.</p></li>
+        </ul>
+        <figure class="shot">
+          <img src="/assets/img/recording.ru.webp" width="1600" height="1330" loading="lazy" alt="Воспроизведение записи SSH-сессии в консоли Airgate: команды инженера на web-01 и их вывод">
+          <figcaption>Запись SSH-сессии в консоли. Интерфейс настоящий, данные синтетические.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="resources" aria-labelledby="res-title">
+      <h2 id="res-title">Родные клиенты, ничего не нужно переучивать</h2>
+      <p class="intro">Инженеры работают теми же <code>psql</code>, <code>kubectl</code>, <code>ssh</code> и другими привычными инструментами. Airgate понимает протокол и записывает в нём главное.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Ресурс</th><th scope="col">Что видно в аудите</th></tr></thead>
+          <tbody>
+            <tr><td>PostgreSQL, MySQL и MariaDB, Microsoft SQL Server, ClickHouse</td><td>Текст запросов</td></tr>
+            <tr><td>Redis, MongoDB, etcd, Kafka</td><td>Команды и запросы к данным</td></tr>
+            <tr><td>SSH</td><td>Команды и запись сессии</td></tr>
+            <tr><td>Kubernetes</td><td>Каждый запрос к API, от имени пользователя</td></tr>
+            <tr><td>Любой TCP-сервис</td><td>Факт соединения</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Вид ресурса попадает в этот список только после того, как автотест подтвердил его работу против настоящего сервера. Глубина аудита у протоколов разная, и мы говорим об этом заранее, а не после инцидента.</p>
+    </section>
+
+    <section class="section" aria-labelledby="console-title">
+      <h2 id="console-title">Одна консоль для доступа и периметра</h2>
+      <p class="intro">Ноды, сессии, события аудита, баны и правила в одном месте, на русском или английском. Повседневные операции доступны и из командной строки <code>ag</code>.</p>
+      <figure class="shot spaced">
+        <img src="/assets/img/map.ru.webp" width="1600" height="828" loading="lazy" alt="Карта соединений в консоли Airgate: внешние адреса, процессы на ноде и внутренние сервисы, отклонённые пути отмечены красным">
+        <figcaption>Карта соединений: кто с кем разговаривает, отклонённые пути — красным. Интерфейс настоящий, данные синтетические.</figcaption>
+      </figure>
+    </section>
+
+    <section class="section" id="perimeter" aria-labelledby="per-title">
+      <h2 id="per-title">Фильтры L4 и L7</h2>
+      <p class="intro">Фильтры работают на тех же нодах, что и доступ, или на своих хостах, по отдельности или вместе. С хабом сигналы со всех нод сходятся в одном месте, а решения действуют на весь флот.</p>
+      <div class="columns">
+        <div id="l4">
+          <h3>L4 в ядре</h3>
+          <ul>
+            <li>Программа XDP отбрасывает пакеты раньше, чем их увидят сетевой стек и приложение.</li>
+            <li>Правила allow, deny, ограничение скорости и числа соединений.</li>
+            <li>Лимиты по источнику против флудов. Число соединений считается по завершённым рукопожатиям, подделкой адреса его не накрутить.</li>
+            <li>У каждого правила есть режим наблюдения: видно, что было бы отброшено, до того как правило начнёт блокировать.</li>
+          </ul>
+        </div>
+        <div id="l7">
+          <h3>Веб-фильтр L7</h3>
+          <ul>
+            <li>Обратный прокси на ноде перед вашими веб-сервисами.</li>
+            <li>OWASP Core Rule Set работает через Coraza и даёт сигналы. Решение принимают ваши правила.</li>
+            <li>Отпечатки клиентов по TLS, HTTP и TCP.</li>
+            <li>Проверка подозрительных клиентов и списки известных краулеров.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Вместе под хабом</h3>
+          <ul>
+            <li>Нарушитель банится на всём флоте или в контуре по сигналам с нод.</li>
+            <li>Свои ноды не блокируются никогда.</li>
+            <li>Аварийный выключатель снимает набор правил одним действием.</li>
+            <li>История и откат правил, метрики, журнал флудов и уведомления.</li>
+          </ul>
+        </div>
+      </div>
+      <figure class="shot spaced">
+        <img src="/assets/img/bans.ru.webp" width="1600" height="672" loading="lazy" alt="Экран банов консоли Airgate: заблокированные адреса с причиной, сроком и уровнем, L4 и L7 или только L7, на котором действует бан">
+        <figcaption>Баны: причина, срок, охват и уровень, на котором действует бан. Интерфейс настоящий, данные синтетические.</figcaption>
+      </figure>
+    </section>
+
+    <section class="section" aria-labelledby="prin-title">
+      <h2 id="prin-title">Сделан, чтобы оставаться в вашей сети</h2>
+      <ul class="principles">
+        <li><h3>Работает у вас</h3><p>Хаб и ноды стоят на ваших серверах. Данные не покидают вашу сеть.</p></li>
+        <li><h3>Без телеметрии</h3><p>Продукт ничего никуда не отправляет. Эта страница тоже: ни счётчиков, ни чужих шрифтов и скриптов.</p></li>
+        <li><h3>В закрытых сетях</h3><p>Доступ в интернет не нужен. Внешние источники данных подключаются по желанию.</p></li>
+        <li><h3>Свой код</h3><p>Написан на Go, фильтр в ядре — на eBPF. Никакого чужого прокси на пути данных.</p></li>
+      </ul>
+    </section>
+
+    <section class="access" aria-labelledby="ea-title">
+      <div>
+        <h2 id="ea-title">Airgate в раннем доступе</h2>
+        <p>Напишите нам: покажем продукт на живом стенде и поможем запустить пилот в вашей инфраструктуре. <a href="mailto:hello@airgate.io?subject=%D0%A0%D0%B0%D0%BD%D0%BD%D0%B8%D0%B9%20%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%20%D0%BA%20Airgate">hello@airgate.io</a></p>
+      </div>
+      <a class="btn btn-primary" href="mailto:hello@airgate.io?subject=%D0%A0%D0%B0%D0%BD%D0%BD%D0%B8%D0%B9%20%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%20%D0%BA%20Airgate">Запросить ранний доступ</a>
+    </section>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span>© 2026 Airgate</span>
+    <span><a href="/" hreflang="en" lang="en">English version</a></span>
+    <span>Шрифты: Golos Text и JetBrains Mono, <a href="/assets/fonts/OFL-GolosText.txt">SIL Open Font License</a></span>
+  </div>
+</footer>
+</body>
+</html>
