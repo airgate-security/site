@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airgate: access gateway and perimeter defense</title>
+<meta name="description" content="One entry point to Kubernetes, databases and servers, tied to your sign-in, with a full audit trail. The same nodes filter traffic at L4 and L7. Self-hosted, no telemetry.">
+<link rel="canonical" href="https://airgate.io/">
+<link rel="alternate" hreflang="en" href="https://airgate.io/">
+<link rel="alternate" hreflang="ru" href="https://airgate.io/ru/">
+<link rel="alternate" hreflang="x-default" href="https://airgate.io/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/golos-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css">
+<meta name="theme-color" content="#f5c400">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Airgate">
+<meta property="og:title" content="Airgate: access gateway and perimeter defense">
+<meta property="og:description" content="One entry point to Kubernetes, databases and servers, with a full audit trail and L4/L7 filtering in the same product. Self-hosted.">
+<meta property="og:url" content="https://airgate.io/">
+<meta property="og:image" content="https://airgate.io/assets/img/og.en.png">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Airgate home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#142235"/><path d="M8 25V9h16v16" fill="none" stroke="#f5c400" stroke-width="3.5" stroke-linejoin="round"/><path d="M13 25v-9h6v9" fill="none" stroke="#f5c400" stroke-width="2.5"/></svg>
+      Airgate
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#parts">Three parts</a>
+      <a href="#how">How it works</a>
+      <a href="#access">Access</a>
+      <a href="#perimeter">L4 and L7</a>
+    </nav>
+    <a class="lang" href="/ru/" hreflang="ru" lang="ru">Русский</a>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <section class="sign" aria-labelledby="hero-title">
+      <div class="sign-direction">
+        <div>
+          <h1 id="hero-title">One gate to your infrastructure</h1>
+          <p class="lead">Airgate guards the perimeter with L4 and L7 filters and publishes databases, clusters and servers to your engineers with access control by identity. Three parts, each usable on its own. Everything runs in your network.</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="mailto:hello@airgate.io?subject=Airgate%20early%20access">Request early access</a>
+          <a class="btn btn-plain" href="#how">How it works</a>
+        </div>
+      </div>
+      <figure class="sign-board" aria-label="Example: one database connection through Airgate">
+        <p class="board-cmd">ag db connect pg-orders --db-user app</p>
+        <ol class="trace">
+          <li><span class="k">identity</span><span class="v">alice, group dev, signed in through your OIDC</span></li>
+          <li><span class="k">policy</span><span class="v"><span class="ok">permit</span> by rule dev-read-orders</span></li>
+          <li><span class="k">account</span><span class="v">temporary user ag_alice_7f3c for this session</span></li>
+          <li><span class="k">route</span><span class="v">node db-1, outbound tunnel, no inbound ports</span></li>
+          <li><span class="k">audit</span><span class="v">SELECT id, status FROM orders WHERE id = 42, chained as a91f04e2</span></li>
+        </ol>
+        <figcaption class="board-note">One connection, step by step. Each step is checked and written to the audit log.</figcaption>
+      </figure>
+    </section>
+
+    <section class="section" aria-labelledby="pain-title">
+      <h2 id="pain-title">Access and the perimeter are usually spread across many tools</h2>
+      <ul class="pains">
+        <li><h3>Access</h3><p>VPN, SSH keys, shared database passwords. Every system has its own mechanism and its own exceptions.</p></li>
+        <li><h3>Audit</h3><p>Who did what in a database or on a host is pieced together from several logs, and it is hard to show an auditor who could do what.</p></li>
+        <li><h3>Perimeter</h3><p>The firewall, the WAF and block lists live separately and know nothing about each other.</p></li>
+        <li><h3>Offboarding</h3><p>People leave, their access stays. Revoking it is manual work across a dozen systems.</p></li>
+      </ul>
+    </section>
+
+    <section class="section" id="parts" aria-labelledby="parts-title">
+      <h2 id="parts-title">Three parts, each works on its own</h2>
+      <p class="intro">Start with the part you need now and add the others later. A node can run any one of them, or all three together.</p>
+      <div class="parts">
+        <div class="part">
+          <div class="part-mark">L4</div>
+          <h3>L4 filter in the kernel</h3>
+          <p>Drops unwanted packets with XDP before the network stack and the applications see them. Allow and deny rules, rate and connection limits, protection against floods.</p>
+          <p class="alone">On its own: on a Linux host with kernel 5.8 or newer, even without the hub. Rules can come from a local directory.</p>
+          <a class="more" href="#l4">About the L4 filter</a>
+        </div>
+        <div class="part">
+          <div class="part-mark">L7</div>
+          <h3>L7 web filter</h3>
+          <p>A reverse proxy in front of your web services. It checks requests against the OWASP Core Rule Set, fingerprints clients and challenges suspicious ones. Your rules make the decision.</p>
+          <p class="alone">On its own: in front of any web service, also without the hub.</p>
+          <a class="more" href="#l7">About the L7 filter</a>
+        </div>
+        <div class="part">
+          <div class="part-mark">AC</div>
+          <h3>Access control and resource publishing</h3>
+          <p>Opens databases, Kubernetes, SSH and any TCP service to engineers with no inbound ports. Access goes by identity and policy, and every query and command lands in the audit log.</p>
+          <p class="alone">On its own: a node next to the resources and the hub, which signs sessions and keeps the audit. No filters required.</p>
+          <a class="more" href="#access">About access</a>
+        </div>
+      </div>
+      <p class="parts-note">Under one hub the parts share signals: an address caught by the L7 filter on one node can be dropped at L4 on every node of the fleet.</p>
+    </section>
+
+    <section class="section" id="how" aria-labelledby="how-title">
+      <h2 id="how-title">A hub that decides, nodes next to your resources</h2>
+      <p class="intro">Engineers use the <code>ag</code> command line or a browser. The hub checks policy and keeps the audit log. Nodes sit next to clusters, servers and databases, and on the perimeter.</p>
+      <div class="diagram">
+        <svg class="diagram-wide" viewBox="0 0 1000 380" role="img" aria-labelledby="dw-t">
+          <title id="dw-t">The engineer connects to the hub. Nodes next to a Kubernetes cluster, servers and databases, and the perimeter connect to the hub over outbound tunnels.</title>
+          <defs>
+            <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="arrow" d="M0 0 10 5 0 10z"/></marker>
+          </defs>
+          <rect class="box" x="10" y="140" width="210" height="100" rx="10"/>
+          <text class="t" x="115" y="182" text-anchor="middle">Engineer</text>
+          <text class="s" x="115" y="206" text-anchor="middle">ag command line or browser</text>
+
+          <path class="line" d="M220 190H372" marker-end="url(#aw)"/>
+
+          <rect class="hub" x="380" y="105" width="250" height="170" rx="10"/>
+          <text class="hub-t" x="505" y="160" text-anchor="middle">Hub</text>
+          <text class="hub-s" x="505" y="186" text-anchor="middle">policies, audit, web console</text>
+          <text class="hub-s" x="505" y="208" text-anchor="middle">short-lived certificates</text>
+          <text class="hub-s" x="505" y="230" text-anchor="middle">replicas on PostgreSQL</text>
+
+          <rect class="box" x="770" y="20" width="220" height="80" rx="10"/>
+          <text class="t" x="880" y="55" text-anchor="middle">Node</text>
+          <text class="s" x="880" y="78" text-anchor="middle">Kubernetes cluster</text>
+          <rect class="box" x="770" y="150" width="220" height="80" rx="10"/>
+          <text class="t" x="880" y="185" text-anchor="middle">Node</text>
+          <text class="s" x="880" y="208" text-anchor="middle">servers and databases</text>
+          <rect class="box" x="770" y="280" width="220" height="80" rx="10"/>
+          <text class="t" x="880" y="315" text-anchor="middle">Node</text>
+          <text class="s" x="880" y="338" text-anchor="middle">perimeter, L4 and L7</text>
+
+          <path class="tunnel" d="M770 60C700 60 690 140 638 160" marker-end="url(#aw)"/>
+          <path class="tunnel" d="M770 190H638" marker-end="url(#aw)"/>
+          <path class="tunnel" d="M770 320C700 320 690 240 638 220" marker-end="url(#aw)"/>
+          <text class="s" x="704" y="180" text-anchor="middle">outbound</text>
+        </svg>
+        <svg class="diagram-narrow" viewBox="0 0 340 600" role="img" aria-labelledby="dn-t">
+          <title id="dn-t">The engineer connects to the hub. Nodes connect to the hub over outbound tunnels.</title>
+          <defs>
+            <marker id="an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="arrow" d="M0 0 10 5 0 10z"/></marker>
+          </defs>
+          <rect class="box" x="40" y="10" width="260" height="70" rx="10"/>
+          <text class="t" x="170" y="40" text-anchor="middle">Engineer</text>
+          <text class="s" x="170" y="62" text-anchor="middle">ag command line or browser</text>
+          <path class="line" d="M170 80V122" marker-end="url(#an)"/>
+          <rect class="hub" x="20" y="130" width="300" height="130" rx="10"/>
+          <text class="hub-t" x="170" y="168" text-anchor="middle">Hub</text>
+          <text class="hub-s" x="170" y="194" text-anchor="middle">policies, audit, web console</text>
+          <text class="hub-s" x="170" y="216" text-anchor="middle">short-lived certificates</text>
+          <text class="hub-s" x="170" y="238" text-anchor="middle">replicas on PostgreSQL</text>
+          <path class="tunnel" d="M170 310V268" marker-end="url(#an)"/>
+          <text class="s" x="182" y="294">outbound tunnels</text>
+          <rect class="box" x="20" y="320" width="300" height="70" rx="10"/>
+          <text class="t" x="170" y="350" text-anchor="middle">Node</text>
+          <text class="s" x="170" y="372" text-anchor="middle">Kubernetes cluster</text>
+          <rect class="box" x="20" y="410" width="300" height="70" rx="10"/>
+          <text class="t" x="170" y="440" text-anchor="middle">Node</text>
+          <text class="s" x="170" y="462" text-anchor="middle">servers and databases</text>
+          <rect class="box" x="20" y="500" width="300" height="70" rx="10"/>
+          <text class="t" x="170" y="530" text-anchor="middle">Node</text>
+          <text class="s" x="170" y="552" text-anchor="middle">perimeter, L4 and L7</text>
+        </svg>
+      </div>
+      <div class="facts">
+        <div><h3>Nodes connect out</h3><p>Each node opens an encrypted outbound tunnel to the hub. Resources behind it need no inbound ports.</p></div>
+        <div><h3>Decided on the hub, enforced at the node</h3><p>The hub checks the policy, issues a short-lived certificate for the session and writes the audit record. The node carries the decision out next to the resource.</p></div>
+        <div><h3>No single point of failure</h3><p>Run the hub as several replicas on PostgreSQL. If the hub is unreachable, nodes keep protecting the perimeter.</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="access" aria-labelledby="access-title">
+      <h2 id="access-title">Access by identity, with a trail you can check</h2>
+      <div class="split">
+        <ul class="features">
+          <li><h3>Your sign-in</h3><p>Any OIDC provider: Keycloak, Microsoft Entra ID, Okta. For simple setups Airgate ships with Dex.</p></li>
+          <li><h3>Policies instead of keys</h3><p>Who may reach what, in one set of Cedar rules. Access is closed by default, rights follow groups, and a policy can be tested before it goes live.</p></li>
+          <li><h3>No standing passwords</h3><p>Databases get a temporary user for each session instead of a shared password.</p></li>
+          <li><h3>Access on request</h3><p>An engineer asks for access, an approver grants it for a limited time, and it expires on its own.</p></li>
+          <li><h3>SSH under control</h3><p>Sessions are recorded. Every channel, from a shell to port forwarding, is authorized separately.</p></li>
+          <li><h3>An audit log that shows edits</h3><p>Records are chained by hash, so a change made after the fact is visible.</p></li>
+        </ul>
+        <figure class="shot">
+          <img src="/assets/img/recording.en.webp" width="1600" height="1330" loading="lazy" alt="Playback of a recorded SSH session in the Airgate console: the commands an engineer ran on web-01 and their output">
+          <figcaption>A recorded SSH session played back in the console. Real interface, synthetic data.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="resources" aria-labelledby="res-title">
+      <h2 id="res-title">Native clients, nothing to relearn</h2>
+      <p class="intro">Engineers keep <code>psql</code>, <code>kubectl</code>, <code>ssh</code> and the other tools they use today. Airgate understands the protocol and records what matters in it.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Resource</th><th scope="col">What the audit records</th></tr></thead>
+          <tbody>
+            <tr><td>PostgreSQL, MySQL and MariaDB, Microsoft SQL Server, ClickHouse</td><td>Query text</td></tr>
+            <tr><td>Redis, MongoDB, etcd, Kafka</td><td>Commands and data requests</td></tr>
+            <tr><td>SSH</td><td>Commands and a recording of the session</td></tr>
+            <tr><td>Kubernetes</td><td>Every API request, made on behalf of the user</td></tr>
+            <tr><td>Any TCP service</td><td>The fact of the connection</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">A kind of resource is listed only after an automated test against a real server proves it works. The depth of audit differs between protocols, and we say so up front rather than after an incident.</p>
+    </section>
+
+    <section class="section" aria-labelledby="console-title">
+      <h2 id="console-title">One console for access and the perimeter</h2>
+      <p class="intro">Nodes, sessions, audit events, bans and rules in one place, in English or Russian. Everyday operations are also available from the <code>ag</code> command line.</p>
+      <figure class="shot spaced">
+        <img src="/assets/img/map.en.webp" width="1600" height="744" loading="lazy" alt="Connection map in the Airgate console: external addresses, processes on the node and internal services, with denied paths in red">
+        <figcaption>Connection map: who talks to whom, denied paths in red. Real interface, synthetic data.</figcaption>
+      </figure>
+    </section>
+
+    <section class="section" id="perimeter" aria-labelledby="per-title">
+      <h2 id="per-title">L4 and L7 filters</h2>
+      <p class="intro">The filters run on the same nodes as access or on their own hosts, separately or together. With the hub, signals from every node come together and decisions apply to the whole fleet.</p>
+      <div class="columns">
+        <div id="l4">
+          <h3>L4 in the kernel</h3>
+          <ul>
+            <li>An XDP program drops packets before the network stack and the application see them.</li>
+            <li>Allow, deny, rate limit and connection limit rules.</li>
+            <li>Per-source limits against floods. Connection limits count completed handshakes, so spoofed addresses cannot inflate them.</li>
+            <li>A detect mode for every rule shows what would be dropped before you enforce it.</li>
+          </ul>
+        </div>
+        <div id="l7">
+          <h3>L7 web filter</h3>
+          <ul>
+            <li>A reverse proxy on the node in front of your web services.</li>
+            <li>The OWASP Core Rule Set runs through Coraza and produces signals. Your rules make the decision.</li>
+            <li>TLS, HTTP and TCP fingerprints of clients.</li>
+            <li>A challenge for suspicious clients and lists of known crawlers.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Together under the hub</h3>
+          <ul>
+            <li>An offender is banned on the whole fleet or a zone, based on signals from the nodes.</li>
+            <li>Your own nodes are never blocked.</li>
+            <li>An emergency switch turns a rule set off in one action.</li>
+            <li>History and rollback of rules, metrics, a flood journal and notifications.</li>
+          </ul>
+        </div>
+      </div>
+      <figure class="shot spaced">
+        <img src="/assets/img/bans.en.webp" width="1600" height="672" loading="lazy" alt="Bans screen of the Airgate console: banned addresses with reason, expiry and the layer, L4 and L7 or L7 only, where each ban applies">
+        <figcaption>Bans: reason, expiry, scope and the layer each ban applies at. Real interface, synthetic data.</figcaption>
+      </figure>
+    </section>
+
+    <section class="section" aria-labelledby="prin-title">
+      <h2 id="prin-title">Built to stay inside your network</h2>
+      <ul class="principles">
+        <li><h3>Self-hosted</h3><p>The hub and the nodes run on your servers. Your data does not leave your network.</p></li>
+        <li><h3>No telemetry</h3><p>The product sends nothing home. Neither does this page: no counters, no outside fonts or scripts.</p></li>
+        <li><h3>Works in closed networks</h3><p>No internet access needed. External data sources are optional.</p></li>
+        <li><h3>Our own code</h3><p>Written in Go, with the kernel filter in eBPF. No third-party proxy in the data path.</p></li>
+      </ul>
+    </section>
+
+    <section class="access" aria-labelledby="ea-title">
+      <div>
+        <h2 id="ea-title">Airgate is in early access</h2>
+        <p>Write to us and we will show it on a live setup and help you run a pilot in your own infrastructure: <a href="mailto:hello@airgate.io?subject=Airgate%20early%20access">hello@airgate.io</a></p>
+      </div>
+      <a class="btn btn-primary" href="mailto:hello@airgate.io?subject=Airgate%20early%20access">Request early access</a>
+    </section>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span>© 2026 Airgate</span>
+    <span><a href="/ru/" hreflang="ru" lang="ru">Русская версия</a></span>
+    <span>Fonts: Golos Text and JetBrains Mono, <a href="/assets/fonts/OFL-GolosText.txt">SIL Open Font License</a></span>
+  </div>
+</footer>
+</body>
+</html>
