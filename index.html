@@ -85,7 +85,7 @@
         <div class="part">
           <div class="part-mark">L4</div>
           <h3>L4 filter in the kernel</h3>
-          <p>Drops unwanted packets with XDP before the network stack and the applications see them. Allow and deny rules, rate and connection limits, protection against floods.</p>
+          <p>Drops unwanted packets with XDP before the network stack and the applications see them. Allow and deny rules, rate and connection limits, protection against floods and password guessing.</p>
           <p class="alone">On its own: on a Linux host with kernel 5.8 or newer, even without the hub. Rules can come from a local directory.</p>
           <a class="more" href="#l4">About the L4 filter</a>
         </div>
@@ -232,6 +232,7 @@
             <li>An XDP program drops packets before the network stack and the application see them.</li>
             <li>Allow, deny, rate limit and connection limit rules.</li>
             <li>Per-source limits against floods. Connection limits count completed handshakes, so spoofed addresses cannot inflate them.</li>
+            <li>Failed logins from the system journal: sshd, mail and FTP out of the box, any other service through your own patterns. A rule bans an address after so many failures in a window.</li>
             <li>A detect mode for every rule shows what would be dropped before you enforce it.</li>
           </ul>
         </div>
